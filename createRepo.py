@@ -14,7 +14,7 @@ def createRepo(path):
     logging.info(f"Validating the given path: {path}")
     if not util.exists(path):
         raise FileNotFoundError(f"Path does not exist: {path}")
-    if not util.accessible(path):
+    if not util.writeable(path):
         raise PermissionError(f"User lacks required permissions: {path}")
     if not util.emptyDir(path):
         raise FileExistsError(

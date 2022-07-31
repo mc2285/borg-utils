@@ -5,7 +5,11 @@ def exists(path) -> bool:
     return os.access(path, os.F_OK)
 
 # Exception safe
-def accessible(path) -> bool:
+def readable(path) -> bool:
+    return os.access(path, os.R_OK)
+
+# Exception safe
+def writeable(path) -> bool:
     return os.access(path, os.R_OK | os.W_OK | os.X_OK)
 
 # Throws FileNotFoundError if path does not exist
