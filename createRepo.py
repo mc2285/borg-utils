@@ -20,6 +20,15 @@ def createRepo(path):
         raise FileExistsError(
             f"Directory is not empty: {path} Refusing to proceed")
     logging.info(f"Creating Borg repo: {path}")
+    """
+        Why no encryption? Encryption at rest schould be handled by the storage provider.
+        There is no need to encrypt multiple times as it increases the risk of data loss,
+        overhead and complexity of the system. Backups are meant to decrease the risk
+        of data loss, not to create it. Also please mind, that `borg init --encryption=authenticated`
+        can also render the backup useless in case the config file and/or key is lost.
+        See https://github.com/borgbackup/borg/issues/6916 and
+        https://github.com/borgbackup/borg/issues/4042
+    """
     res = subprocess.run(["borg", "init", "--encryption",
                          "none", str(path)], text=True, capture_output=True)
     if res.returncode == 1:
