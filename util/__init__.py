@@ -12,6 +12,10 @@ def readable(path) -> bool:
 def writeable(path) -> bool:
     return os.access(path, os.R_OK | os.W_OK | os.X_OK)
 
+# Exception safe
+def fileWriteable(path) -> bool:
+    return os.access(path, os.W_OK)
+
 # Throws FileNotFoundError if path does not exist
 # Throws PermissionError if the user lacks
 #   required permissions to list the directory

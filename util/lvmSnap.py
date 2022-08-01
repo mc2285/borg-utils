@@ -72,7 +72,7 @@ class Mount:
             try:
                 self.__mountpoint.cleanup()
             except:
-                logging.warn(f"Failed to clean up {self.__mountpoint.name}")
+                logging.warning(f"Failed to clean up {self.__mountpoint.name}")
             raise ChildProcessError(res.stderr)
         logging.info(
             f"Mounted {self.__sourcePath} to {self.__mountpoint.name}")
@@ -85,7 +85,7 @@ class Mount:
         try:
             self.__mountpoint.cleanup()
         except:
-            logging.warn(f"Failed to clean up {self.__mountpoint.name}")
+            logging.warning(f"Failed to clean up {self.__mountpoint.name}")
         if res.returncode != 0:
             raise ChildProcessError(res.stderr)
         logging.info(f"Unmounted {self.__mountpoint}")

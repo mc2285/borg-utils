@@ -32,7 +32,7 @@ def createRepo(path):
     res = subprocess.run(["borg", "init", "--encryption",
                          "none", str(path)], text=True, capture_output=True)
     if res.returncode == 1:
-        logging.warn(res.stderr)
+        logging.warning(res.stderr)
     elif res.returncode == 2:
         raise ChildProcessError(res.stderr)
     else:

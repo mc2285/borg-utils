@@ -9,40 +9,40 @@ import subprocess
 import util
 
 
-def createArchive(archivePath, name: str, sourcePath):
-    archivePath = os.path.abspath(archivePath)
+def createArchive(repoPath, name: str, sourcePath):
+    repoPath = os.path.abspath(repoPath)
     logging.info(f"Validating archive name: {name}")
     if "checkpoint" in name:
         raise ValueError(f"Archive name cannot contain `checkpoint`: {name}")
     if len(name) > 255 or len(name) < 1:
         raise ValueError(f"Archive name must be between 1 and 255 characters: {name}")
-    logging.info(f"Validating the given path: {archivePath}")
-    if not util.exists(archivePath):
-        raise FileNotFoundError(f"Path does not exist: {archivePath}")
-    if not util.writeable(archivePath):
+    logging.info(f"Validating the given path: {repoPath}")
+    if not util.exists(repoPath):
+        raise FileNotFoundError(f"Path does not exist: {repoPath}")
+    if not util.writeable(repoPath):
         raise PermissionError(
-            f"User lacks required permissions: {archivePath}")
-    if util.emptyDir(archivePath):
+            f"User lacks required permissions: {repoPath}")
+    if util.emptyDir(repoPath):
         raise FileNotFoundError(
-            f"Directory is empty: {archivePath}. Consider using createRepo.py first")
+            f"Directory is empty: {repoPath}. Consider using createRepo.py first")
     logging.info(f"Validating source path: {sourcePath}")
     if not util.exists(sourcePath):
         raise FileNotFoundError(f"Path does not exist: {sourcePath}")
     if not util.readable(sourcePath):
         raise PermissionError(f"User lacks required permissions: {sourcePath}")
-    logging.info(f"Creating Borg repo: {archivePath}")
+    logging.info(f"Creating Borg archive: {repoPath}")
     os.environ["BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK"] = "yes"
     res = subprocess.run(["borg", "create",
                           "--one-file-system", "--stats",
                           # The default of 30 minutes seems like an eternity to me
                           "--checkpoint-interval", "600",  # 600 seconds = 10 minutes
-                          f"{archivePath}::{name}", str(sourcePath)], text=True, capture_output=True)
+                          f"{repoPath}::{name}", str(sourcePath)], text=True, capture_output=True)
     if res.returncode == 1:
-        logging.warn(res.stderr)
+        logging.warning(res.stderr)
     elif res.returncode == 2:
         raise ChildProcessError(res.stderr)
     else:
-        logging.info(f"Successfuly created archive: {archivePath}::{name}")
+        logging.info(f"Successfuly created archive: {repoPath}::{name}")
 
 
 if __name__ == "__main__":
