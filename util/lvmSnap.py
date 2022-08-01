@@ -66,7 +66,7 @@ class Mount:
         self.mountpoint = self.__mountpoint.name
         logging.info(
             f"Mounting {self.__sourcePath} to {self.__mountpoint.name}")
-        res = subprocess.run(['mount', "-r", str(
+        res = subprocess.run(['mount', "-o", "ro,nouuid", str(
             self.__sourcePath), self.__mountpoint.name], capture_output=True, text=True)
         if res.returncode != 0:
             try:

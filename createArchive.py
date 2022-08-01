@@ -15,7 +15,8 @@ def createArchive(repoPath, name: str, sourcePath):
     if "checkpoint" in name:
         raise ValueError(f"Archive name cannot contain `checkpoint`: {name}")
     if len(name) > 255 or len(name) < 1:
-        raise ValueError(f"Archive name must be between 1 and 255 characters: {name}")
+        raise ValueError(
+            f"Archive name must be between 1 and 255 characters: {name}")
     logging.info(f"Validating the given path: {repoPath}")
     if not util.exists(repoPath):
         raise FileNotFoundError(f"Path does not exist: {repoPath}")

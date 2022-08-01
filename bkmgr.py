@@ -82,7 +82,8 @@ if __name__ == "__main__":
             with lockFileHandle:
                 if not util.exists(repoPath):
                     raise FileNotFoundError(f"Path does not exist: {repoPath}")
-                snaphotHandle = lvmSnap.Snap(args.source, "bkmgrsnap" + str(int(time.time())))
+                snaphotHandle = lvmSnap.Snap(
+                    args.source, "bkmgrsnap" + str(int(time.time())))
                 with snaphotHandle:
                     mountpointHandle = lvmSnap.Mount(
                         os.path.join(
