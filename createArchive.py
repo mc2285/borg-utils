@@ -33,10 +33,10 @@ def createArchive(repoPath, name: str, sourcePath):
     logging.info(f"Creating Borg archive: {repoPath}")
     os.environ["BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK"] = "yes"
     res = subprocess.run(["borg", "create",
-                          "--one-file-system", "--stats",
+                          "--one-file-system",
                           # The default of 30 minutes seems like an eternity to me
                           "--checkpoint-interval", "600",  # 600 seconds = 10 minutes
-                          f"{repoPath}::{name}", str(sourcePath)], text=True, capture_output=True)
+                          f"{repoPath}::{name}", "."], text=True, capture_output=True, cwd=str(sourcePath))
     if res.returncode == 1:
         logging.warning(res.stderr)
     elif res.returncode == 2:
