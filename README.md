@@ -13,8 +13,7 @@ LVM snapshots, as long as it resides on an LVM volume that is (use the `--lvm` f
 
 ## Dependencies
 
-- `python>=3.8`
-- `python-systemd` (the pip package name is just `systemd`)
+- `python>=3.8` (only standard library)
 
 ## Usage
 
@@ -32,6 +31,7 @@ It's simply easier to manage than Crontab.
 Example:
 
 (backup.service)
+
 ```ini
 [Unit]
 Requires=local-fs.target
@@ -42,6 +42,7 @@ Restart=on-failure
 ```
 
 (backup.timer)
+
 ```ini
 [Unit]
 Description=Run incremental backup daily

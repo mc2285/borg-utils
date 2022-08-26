@@ -6,7 +6,6 @@ import logging
 import io
 import os
 import time
-import systemd.journal
 
 import util
 import util.lvmSnap as lvmSnap
@@ -58,12 +57,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Register systemd journal as logging handler
     if args.verbose:
-        logging.root.addHandler(
-            systemd.journal.JournalHandler(level=logging.INFO))
         logging.root.setLevel(logging.INFO)
     else:
-        logging.root.addHandler(
-            systemd.journal.JournalHandler(level=logging.WARNING))
         logging.root.setLevel(logging.WARNING)
     # Gracefuly exit on unhandled exceptions
     try:
