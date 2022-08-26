@@ -6,6 +6,7 @@ import logging
 import io
 import os
 import time
+import uuid
 
 import util
 import util.lvmSnap as lvmSnap
@@ -78,7 +79,7 @@ if __name__ == "__main__":
                 if not util.exists(repoPath):
                     raise FileNotFoundError(f"Path does not exist: {repoPath}")
                 snaphotHandle = lvmSnap.Snap(
-                    args.source, "bkmgrsnap" + str(int(time.time())))
+                    args.source, "bkmgrsnap" + uuid.uuid4().hex)
                 with snaphotHandle:
                     mountpointHandle = lvmSnap.Mount(
                         os.path.join(

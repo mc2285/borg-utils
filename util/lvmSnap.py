@@ -57,17 +57,27 @@ class Snap:
 class Mount:
     def __init__(self, sourcePath) -> None:
         if not util.exists(sourcePath):
-            raise FileNotFoundError(f"{sourcePath} does not exist")
+            raise FileNotFoundError(f"Device {sourcePath} does not exist")
+        res = subprocess.run(
+            ["lsblk", "-f", "-o", "FSTYPE", sourcePath], capture_output=True, text=True)
+        if res.returncode != 0:
+            raise ChildProcessError(res.stderr)
+        self.fstype = res.stdout.splitlines()[-1].strip()
         self.__sourcePath = sourcePath
         self.sourcePath = sourcePath
 
     def __enter__(self):
         self.__mountpoint = tempfile.TemporaryDirectory()
         self.mountpoint = self.__mountpoint.name
+        _mountOpts = "ro"
+        if self.fstype == 'xfs':
+            _mountOpts += ',nouuid'
         logging.info(
             f"Mounting {self.__sourcePath} to {self.__mountpoint.name}")
-        res = subprocess.run(['mount', "-o", "ro,nouuid", str(
-            self.__sourcePath), self.__mountpoint.name], capture_output=True, text=True)
+        res = subprocess.run([
+            'mount', "-o", _mountOpts,
+            str(self.__sourcePath), self.__mountpoint.name
+        ], capture_output=True, text=True)
         if res.returncode != 0:
             try:
                 self.__mountpoint.cleanup()
