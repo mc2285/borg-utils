@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/usr/bin/env python3
 
 import argparse
 import logging
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     parser.add_argument("target", metavar="TARGET",
                         help="Root directory the archives reside in")
     parser.add_argument("-l", "--lvm", action="store_true",
-                        help="Use LVM to snapshot the source directory")
+                        help="Use LVM snapshots to backup a filesystem on LVM volume")
     parser.add_argument("-c", "--create-repo",
                         action="store_true",
                         help="Create a new repo and update lockfile")

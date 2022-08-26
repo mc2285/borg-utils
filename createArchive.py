@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/usr/bin/env python3
 
 import argparse
 import logging
@@ -31,7 +31,7 @@ def createArchive(repoPath, name: str, sourcePath):
         raise FileNotFoundError(f"Path does not exist: {sourcePath}")
     if not util.readable(sourcePath):
         raise PermissionError(f"User lacks required permissions: {sourcePath}")
-    logging.info(f"Creating Borg archive: {repoPath}")
+    logging.info(f"Creating Borg archive at: {repoPath}")
     os.environ["BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK"] = "yes"
     res = subprocess.run(["borg", "create",
                           "--one-file-system",
