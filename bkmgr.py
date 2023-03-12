@@ -33,8 +33,7 @@ def makeRepo(rootPath, lockFilePath):
     logging.info("Lock file updated")
 
 
-def getCurrentRepoHandle(basePath, fileName: str) -> io.TextIOWrapper:
-    handlePath = os.path.join(basePath, fileName)
+def getCurrentRepoHandle(basePath, handlePath: str) -> io.TextIOWrapper:
     if not util.exists(handlePath):
         raise FileNotFoundError(f"Path does not exist: {handlePath}")
     if not util.readable(handlePath) or not util.fileWriteable(handlePath):
