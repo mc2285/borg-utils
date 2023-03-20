@@ -12,13 +12,16 @@ import re
 class Snap:
     _volumeNameRegex = re.compile(r'^[a-zA-Z0-9]+$')
 
-    def __init__(self, volume: str, name: str) -> None:
+    def __init__(self, volume: str, name: str, cowSize: None) -> None:
+        self.__cowSize = cowSize
         if not self._volumeNameRegex.match(name):
             raise ValueError('Invalid snapshot name')
         logging.info(
             f"Checking if creating snapshot {name} for volume {volume} is possible")
-        res = subprocess.run(['lvcreate', '--name', name, '--snapshot',
-                             "-L64G", "--test", volume], capture_output=True, text=True)
+        _args = ['lvcreate', '--name', name, '--snapshot', "--test", volume]
+        if cowSize:
+            _args.append(f"-L{cowSize}G")
+        res = subprocess.run(_args, capture_output=True, text=True)
         if res.returncode != 0:
             raise ChildProcessError(res.stderr)
         logging.info(f"Snapshot {name} for volume {volume} is possible")
@@ -29,8 +32,18 @@ class Snap:
     def __enter__(self):
         logging.info(
             f"Creating snapshot {self.__snapshotName} for volume {self.__sourceVolume}")
-        res = subprocess.run(['lvcreate', '--name', self.__snapshotName, '--snapshot',
-                              "-L64G", self.__sourceVolume], capture_output=True, text=True)
+        _args = ['lvcreate', '--name', self.__snapshotName,
+                 '--snapshot', self.__sourceVolume]
+        if self.__cowSize:
+            _args.append(f"-L{self.__cowSize}G")
+        res = subprocess.run(_args, capture_output=True, text=True)
+        if res.returncode != 0:
+            raise ChildProcessError(res.stderr)
+        # Force activation of the snapshot so that it can be mounted
+        res = subprocess.run(
+            ['lvchange', '-ay', '-y',
+                f"{self.__volumeGroup}/{self.__snapshotName}"],
+            capture_output=True, text=True)
         if res.returncode != 0:
             raise ChildProcessError(res.stderr)
         logging.info(
@@ -39,6 +52,7 @@ class Snap:
         self.sourceVolume = self.__sourceVolume
         self.volumeGroup = self.__volumeGroup
         self.snapshotName = self.__snapshotName
+        self.cowSize = self.__cowSize
         # The `with` statement expects the object to be returned
         return self
 
