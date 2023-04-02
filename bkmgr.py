@@ -9,7 +9,7 @@ import time
 import uuid
 
 import util
-import util.lvmSnap as lvmSnap
+import util.handlers as handlers
 import createArchive
 import createRepo
 
@@ -61,9 +61,13 @@ if __name__ == "__main__":
                         help="Create a new repo and update lockfile")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Enable verbose logging")
+    parser.add_argument("-d", "--debug", action="store_true",
+                        help="Enable debug logging")
     args = parser.parse_args()
     # Register systemd journal as logging handler
-    if args.verbose:
+    if args.debug:
+        logging.root.setLevel(logging.DEBUG)
+    elif args.verbose:
         logging.root.setLevel(logging.INFO)
     else:
         logging.root.setLevel(logging.WARNING)
@@ -99,12 +103,14 @@ if __name__ == "__main__":
         repoPath = os.path.join(args.target, lockFileHandle.read().strip())
         if not util.exists(repoPath):
             raise FileNotFoundError(f"Path does not exist: {repoPath}")
+        if not util.exists(args.source):
+            raise FileNotFoundError(f"Path does not exist: {args.source}")
         if args.lvm:
             with lockFileHandle:
-                snaphotHandle = lvmSnap.Snap(
+                snaphotHandle = handlers.LVMSnap(
                     args.source, "bkmgrsnap" + uuid.uuid4().hex, args.cow_size)
                 with snaphotHandle:
-                    mountpointHandle = lvmSnap.Mount(
+                    mountpointHandle = handlers.Mount(
                         os.path.join(
                             os.path.sep, "dev",
                             snaphotHandle.volumeGroup, snaphotHandle.snapshotName
@@ -114,7 +120,22 @@ if __name__ == "__main__":
                         makeBackup(repoPath, mountpointHandle.mountpoint)
         else:
             with lockFileHandle:
-                makeBackup(repoPath, args.source)
+                # Check if BTRFS snapshot is available
+                try:
+                    snaphotHandle = handlers.BTRFSSnap(
+                        args.source, "bkmgrsnap" + uuid.uuid4().hex)
+                except (ValueError, ChildProcessError) as ex:
+                    logging.info("BTRFS snapshot not available:")
+                    logging.info(f"\t{str(ex)}")
+                    makeBackup(repoPath, args.source)
+                else:
+                    with snaphotHandle:
+                        mountpointHandle = handlers.Mount(
+                            snaphotHandle.snapshotRootDevice,
+                            f"subvol={snaphotHandle.subvolPath}"
+                            )
+                        with mountpointHandle:
+                            makeBackup(repoPath, mountpointHandle.mountpoint)
         logging.info("Backup complete")
     except BaseException:
         logging.exception("An unhandled exception has occurred:")
