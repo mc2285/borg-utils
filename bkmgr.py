@@ -117,6 +117,7 @@ if __name__ == "__main__":
                         )
                     )
                     with mountpointHandle:
+                        logging.warning("Backing up via LVM snapshot...")
                         makeBackup(repoPath, mountpointHandle.mountpoint)
         else:
             with lockFileHandle:
@@ -125,8 +126,9 @@ if __name__ == "__main__":
                     snaphotHandle = handlers.BTRFSSnap(
                         args.source, "bkmgrsnap" + uuid.uuid4().hex)
                 except (ValueError, ChildProcessError) as ex:
-                    logging.info("BTRFS snapshot not available:")
-                    logging.info(f"\t{str(ex)}")
+                    logging.debug("BTRFS snapshot not available:")
+                    logging.debug(f"\t{str(ex)}")
+                    logging.warning("Proceeding with direct backup...")
                     makeBackup(repoPath, args.source)
                 else:
                     with snaphotHandle:
@@ -135,8 +137,9 @@ if __name__ == "__main__":
                             f"subvol={snaphotHandle.subvolPath}"
                             )
                         with mountpointHandle:
+                            logging.warning("Backing up via BTRFS snapshot...")
                             makeBackup(repoPath, mountpointHandle.mountpoint)
-        logging.info("Backup complete")
+        logging.warning(f"Successfuly backed up {args.source} to {repoPath}")
     except BaseException:
         logging.exception("An unhandled exception has occurred:")
         logging.critical("Backup failed. Exiting on error...")

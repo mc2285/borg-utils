@@ -44,7 +44,7 @@ class BTRFSSnap:
         self.__rootFS = res.stdout.strip()
 
     def __enter__(self):
-        logging.info(
+        logging.debug(
             f"Creating snapshot {self.__name} for {self.__sourcePath}")
         res = subprocess.run(
             ["btrfs", "subvolume", "snapshot", "-r",
@@ -63,7 +63,7 @@ class BTRFSSnap:
         return self
     
     def __exit__(self, exc_type, exc_value, traceback):
-        logging.info(
+        logging.debug(
             f"Deleting snapshot {self.__name} for {self.__sourcePath}")
         res = subprocess.run(
             ["btrfs", "subvolume", "delete", f"{self.__rootFS}/{self.__name}"],
@@ -82,7 +82,7 @@ class LVMSnap:
         self.__cowSize = cowSize
         if not self._volumeNameRegex.match(name):
             raise ValueError('Invalid snapshot name')
-        logging.info(
+        logging.debug(
             f"Checking if creating snapshot {name} for volume {volume} is possible")
         _args = ['lvcreate', '--name', name, '--snapshot', "--test", volume]
         if cowSize:
@@ -96,7 +96,7 @@ class LVMSnap:
         self.__snapshotName = name
 
     def __enter__(self):
-        logging.info(
+        logging.debug(
             f"Creating snapshot {self.__snapshotName} for volume {self.__sourceVolume}")
         _args = ['lvcreate', '--name', self.__snapshotName,
                  '--snapshot', self.__sourceVolume]
@@ -123,7 +123,7 @@ class LVMSnap:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        logging.info(
+        logging.debug(
             f"Deleting snapshot {self.__snapshotName} for volume {self.__sourceVolume}")
         res = subprocess.run(
             ['lvremove', '-f', f"{self.__volumeGroup}/{self.__snapshotName}"], capture_output=True, text=True)
@@ -155,7 +155,7 @@ class Mount:
             _mountOpts += ',nouuid'
         if self.__mountOptions:
             _mountOpts += f",{self.__mountOptions}"
-        logging.info(
+        logging.debug(
             f"Mounting {self.__sourcePath} to {self.__mountpoint.name}")
         logging.debug(f"mount -o {_mountOpts} {self.__sourcePath} {self.__mountpoint.name}")
         res = subprocess.run([
@@ -169,11 +169,11 @@ class Mount:
                 logging.warning(f"Failed to clean up {self.__mountpoint.name}")
             raise ChildProcessError(res.stderr)
         logging.info(
-            f"Mounted {self.__sourcePath} to {self.__mountpoint.name}")
+            f"Mounted {self.__sourcePath} at {self.__mountpoint.name}")
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        logging.info(f"Unmounting {self.__mountpoint.name}")
+        logging.debug(f"Unmounting {self.__mountpoint.name}")
         res = subprocess.run(
             ['umount', self.__mountpoint.name], capture_output=True, text=True)
         try:

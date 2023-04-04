@@ -11,7 +11,7 @@ import util
 
 def createRepo(path):
     path = os.path.abspath(path)
-    logging.info(f"Validating the given path: {path}")
+    logging.debug(f"Validating the given path: {path}")
     if not util.exists(path):
         raise FileNotFoundError(f"Path does not exist: {path}")
     if not util.writeable(path):
@@ -19,7 +19,7 @@ def createRepo(path):
     if not util.emptyDir(path):
         raise FileExistsError(
             f"Directory is not empty: {path} Refusing to proceed")
-    logging.info(f"Creating Borg repo: {path}")
+    logging.info(f"Initializing new Borg repo: {path}")
     """
         Why no encryption? Encryption at rest schould be handled by the storage provider.
         There is no need to encrypt multiple times as it increases the risk of data loss,
@@ -36,7 +36,7 @@ def createRepo(path):
     elif res.returncode == 2:
         raise ChildProcessError(res.stderr)
     else:
-        logging.info(f"Successfuly initialized unencrypted Borg repo: {path}")
+        logging.warning(f"Borg repo initialized: {path}")
 
 
 if __name__ == "__main__":
@@ -46,8 +46,12 @@ if __name__ == "__main__":
                         help="Directory to create the repository in")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Enable verbose logging")
+    parser.add_argument("-d", "--debug", action="store_true",
+                        help="Enable debug logging")
     args = parser.parse_args()
-    if args.verbose:
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    elif args.verbose:
         logging.basicConfig(level=logging.INFO)
     paths = args.path
     for path in paths:

@@ -11,13 +11,13 @@ import util
 
 def createArchive(repoPath, name: str, sourcePath):
     repoPath = os.path.abspath(repoPath)
-    logging.info(f"Validating archive name: {name}")
+    logging.debug(f"Validating archive name: {name}")
     if "checkpoint" in name:
         raise ValueError(f"Archive name cannot contain `checkpoint`: {name}")
     if len(name) > 255 or len(name) < 1:
         raise ValueError(
             f"Archive name must be between 1 and 255 characters: {name}")
-    logging.info(f"Validating the given path: {repoPath}")
+    logging.debug(f"Validating the given path: {repoPath}")
     if not util.exists(repoPath):
         raise FileNotFoundError(f"Path does not exist: {repoPath}")
     if not util.writeable(repoPath):
@@ -26,12 +26,12 @@ def createArchive(repoPath, name: str, sourcePath):
     if util.emptyDir(repoPath):
         raise FileNotFoundError(
             f"Directory is empty: {repoPath}. Consider using createRepo.py first")
-    logging.info(f"Validating source path: {sourcePath}")
+    logging.debug(f"Validating source path: {sourcePath}")
     if not util.exists(sourcePath):
         raise FileNotFoundError(f"Path does not exist: {sourcePath}")
     if not util.readable(sourcePath):
         raise PermissionError(f"User lacks required permissions: {sourcePath}")
-    logging.info(f"Creating Borg archive at: {repoPath}")
+    logging.info(f"Creating Borg archive {repoPath}::{name}")
     os.environ["BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK"] = "yes"
     res = subprocess.run(["borg", "create",
                           "--one-file-system",
@@ -43,7 +43,7 @@ def createArchive(repoPath, name: str, sourcePath):
     elif res.returncode == 2:
         raise ChildProcessError(res.stderr)
     else:
-        logging.info(f"Successfuly created archive: {repoPath}::{name}")
+        logging.warning(f"Archive created: {repoPath}::{name}")
 
 
 if __name__ == "__main__":
@@ -55,8 +55,12 @@ if __name__ == "__main__":
                         help="Source directory to backup")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Enable verbose logging")
+    parser.add_argument("-d", "--debug", action="store_true",
+                        help="Enable debug logging")
     args = parser.parse_args()
-    if args.verbose:
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    elif args.verbose:
         logging.basicConfig(level=logging.INFO)
     try:
         archivePath, name = args.archive.split("::")
